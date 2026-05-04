@@ -15,7 +15,6 @@ function AdminDashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeMainTab, setActiveMainTab] = useState("beranda");
   const notifRef = useRef(null);
-  const notifRef = useRef(null);
   const [userProfileData, setUserProfileData] = useState(null);
   const [stats, setStats] = useState({ totalWarga: "..." });
 
