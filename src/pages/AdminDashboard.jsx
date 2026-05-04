@@ -15,7 +15,9 @@ function AdminDashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeMainTab, setActiveMainTab] = useState("beranda");
   const notifRef = useRef(null);
+  const notifRef = useRef(null);
   const [userProfileData, setUserProfileData] = useState(null);
+  const [stats, setStats] = useState({ totalWarga: "..." });
 
   // Modal Evidence States
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
@@ -69,6 +71,15 @@ function AdminDashboard() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await api.get("/public/stats");
+      setStats({ totalWarga: res.data.totalWarga });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
@@ -86,6 +97,7 @@ function AdminDashboard() {
     fetchUserProfile();
     fetchReports();
     fetchNotifications();
+    fetchStats();
 
     const intervalId = setInterval(fetchNotifications, 10000);
     return () => clearInterval(intervalId);
@@ -341,7 +353,7 @@ function AdminDashboard() {
                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5V4H2v16h5m10 0v-4H7v4m10 0H7m0 0H2m5 0h10M9 8h6v4H9V8z" /></svg>
                  </div>
                  <div>
-                    <p className="text-2xl font-black text-slate-800">1,245</p>
+                    <p className="text-2xl font-black text-slate-800">{stats.totalWarga}</p>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Data Warga (Total Populasi)</p>
                  </div>
               </div>
@@ -448,42 +460,21 @@ function AdminDashboard() {
                  {/* Aksi Cepat Administrasi */}
                  <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6">
                     <h3 className="text-base font-bold text-slate-900 mb-4">Aksi Cepat Administrasi</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                       <button onClick={() => setActiveMainTab('kelola_warga')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3">
-                         <div className="w-10 h-10 rounded-full bg-white text-sipentar-blue shadow-sm flex items-center justify-center">
-                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                         </div>
-                         <span className="text-xs font-bold text-slate-700 text-center">Tambah Warga</span>
-                       </button>
-                       <button className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3 opacity-70 cursor-not-allowed" title="Segera Hadir">
-                         <div className="w-10 h-10 rounded-full bg-white text-slate-400 shadow-sm flex items-center justify-center">
-                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                         </div>
-                         <span className="text-xs font-bold text-slate-500 text-center">Surat Keterangan</span>
-                       </button>
-                       <button className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3 opacity-70 cursor-not-allowed col-span-2 md:col-span-1" title="Segera Hadir">
-                         <div className="w-10 h-10 rounded-full bg-white text-slate-400 shadow-sm flex items-center justify-center">
-                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-                         </div>
-                         <span className="text-xs font-bold text-slate-500 text-center">Audit Log</span>
-                       </button>
-                    </div>
-                 </div>
-
-                 {/* Wilayah Desa Map Preview Card */}
-                 <div className="bg-slate-800 rounded-xl overflow-hidden shadow-sm relative h-48 border border-slate-700">
-                    {/* Fake map background using gradient and some shapes */}
-                    <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #3b82f6 0%, transparent 60%)' }}></div>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDEwaDIwTTEwIDB2MjAiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=')] opacity-20"></div>
-                    
-                    <div className="absolute bottom-4 left-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-lg text-white">
-                       <h4 className="text-sm font-bold flex items-center gap-2">
-                         <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                         Wilayah Desa
-                       </h4>
-                       <p className="text-[10px] text-slate-300 mt-1">Sistem Pemetaan Geografis Aktif</p>
-                    </div>
-                 </div>
+                     <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setActiveMainTab('kelola_warga')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white text-sipentar-blue shadow-sm flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                          </div>
+                          <span className="text-xs font-bold text-slate-700 text-center">Kelola Warga</span>
+                        </button>
+                        <button onClick={() => setActiveMainTab('profil')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white text-sipentar-blue shadow-sm flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          </div>
+                          <span className="text-xs font-bold text-slate-700 text-center">Pengaturan</span>
+                        </button>
+                     </div>
+                  </div>
 
               </div>
             </div>
