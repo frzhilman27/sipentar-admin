@@ -173,43 +173,11 @@ function Home() {
               </button>
             </Link>
           </div>
-
-          {/* Floating Stats on Hero (Desktop) */}
-          <div className="hidden lg:flex absolute top-1/4 -right-32 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl shadow-2xl animate-float" style={{animationDelay: '1s'}}>
-            <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-blue-500/20 rounded-lg text-blue-300">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              </div>
-              <div>
-                <p className="text-white font-bold text-xl">100%</p>
-                <p className="text-slate-300 text-xs font-medium">Layanan Digital</p>
-              </div>
-            </div>
-          </div>
-          <div className="hidden lg:flex absolute bottom-1/4 -left-32 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl shadow-2xl animate-float" style={{animationDelay: '2s'}}>
-            <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-green-500/20 rounded-lg text-green-300">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              </div>
-              <div>
-                <p className="text-white font-bold text-xl">2,500+</p>
-                <p className="text-slate-300 text-xs font-medium">Warga Terdaftar</p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-        
-        {/* Curved bottom separator */}
-        <div className="absolute bottom-0 w-full overflow-hidden leading-none">
-          <svg className="relative block w-full h-[50px] md:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,119.26,200,107.5,242.47,100.28,283.47,80.1,321.39,56.44Z" className="fill-slate-50"></path>
-          </svg>
         </div>
       </section>
 
       {/* 3. STATISTIK DESA */}
-      <section id="statistik" className="py-16 bg-slate-50 relative z-10 -mt-10">
+      <section id="statistik" className="py-16 bg-slate-50 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
