@@ -390,10 +390,10 @@ function AdminDashboard() {
 
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               
               {/* Laporan Pelayanan Terkini (Table view on Desktop, List on Mobile) */}
-              <div className="md:col-span-2 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
                  <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                     <h3 className="text-base font-bold text-slate-900">Laporan Pelayanan Terkini</h3>
                     <button onClick={() => setActiveMainTab('aduan_masuk')} className="text-sm font-bold text-sipentar-blue hover:text-sipentar-blue-dark">Lihat Semua</button>
@@ -454,29 +454,7 @@ function AdminDashboard() {
                  </div>
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-6">
-                 
-                 {/* Aksi Cepat Administrasi */}
-                 <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6">
-                    <h3 className="text-base font-bold text-slate-900 mb-4">Aksi Cepat Administrasi</h3>
-                     <div className="grid grid-cols-2 gap-3">
-                        <button onClick={() => setActiveMainTab('kelola_warga')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white text-sipentar-blue shadow-sm flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                          </div>
-                          <span className="text-xs font-bold text-slate-700 text-center">Kelola Warga</span>
-                        </button>
-                        <button onClick={() => setActiveMainTab('profil')} className="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-100 gap-3">
-                          <div className="w-10 h-10 rounded-full bg-white text-sipentar-blue shadow-sm flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          </div>
-                          <span className="text-xs font-bold text-slate-700 text-center">Pengaturan</span>
-                        </button>
-                     </div>
-                  </div>
 
-              </div>
             </div>
           </div>
         )}
