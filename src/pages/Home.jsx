@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import useDarkMode from "../hooks/useDarkMode";
+
 import api from "../services/api";
 
 // Reusable Intersection Observer hook for scroll animations
@@ -49,7 +49,7 @@ const AnimatedSection = ({ children, className, delay = "" }) => {
 function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, toggleDarkMode] = useDarkMode();
+
   const [activeFaq, setActiveFaq] = useState(null);
   const [stats, setStats] = useState({
     totalWarga: "...",
@@ -85,10 +85,10 @@ function Home() {
   };
 
   const faqs = [
-    { q: "Bagaimana cara membuat laporan di Sipentar?", a: "Anda dapat membuat laporan dengan mendaftar akun terlebih dahulu, lalu masuk ke Dasbor Warga. Klik menu 'Buat Laporan', isi formulir yang tersedia beserta bukti foto, dan klik kirim." },
-    { q: "Berapa lama laporan saya akan diproses?", a: "Laporan akan diverifikasi oleh admin desa maksimal 1x24 jam kerja. Anda dapat memantau status laporan Anda (Menunggu, Diproses, Selesai) langsung dari Dasbor Warga." },
-    { q: "Apakah data pribadi saya aman?", a: "Sangat aman. Kami menggunakan enkripsi data tingkat tinggi dan protokol keamanan standar pemerintah untuk memastikan privasi identitas dan laporan Anda terjaga." },
-    { q: "Layanan administrasi apa saja yang tersedia?", a: "Saat ini Sipentar melayani pembuatan Surat Keterangan Domisili, Pengantar SKCK, Surat Keterangan Usaha, dan Pelaporan Infrastruktur Desa." }
+    { q: "Bagaimana cara membuat laporan di Sipentar?", a: "Anda dapat membuat laporan dengan mendaftar akun menggunakan NIK terlebih dahulu. Setelah akun diverifikasi oleh admin, masuk ke Dasbor Warga, klik menu 'Buat Laporan', isi formulir yang tersedia beserta bukti foto, dan klik kirim." },
+    { q: "Berapa lama laporan saya akan diproses?", a: "Laporan akan diverifikasi oleh admin desa maksimal 1x24 jam kerja. Anda dapat memantau status laporan Anda (Menunggu, Diproses, Selesai) langsung dari Dasbor Warga secara real-time." },
+    { q: "Apakah data pribadi saya aman?", a: "Sangat aman. Kami menggunakan enkripsi kata sandi dan protokol keamanan JWT untuk memastikan privasi identitas dan laporan Anda terjaga." },
+    { q: "Layanan apa saja yang tersedia di Sipentar?", a: "Saat ini Sipentar melayani Pelaporan Infrastruktur Desa (kerusakan jalan, fasilitas umum, dll), Pengelolaan Data Warga, serta Pemantauan Status Laporan secara real-time melalui dasbor digital." }
   ];
 
   return (
@@ -325,9 +325,9 @@ function Home() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { tag: "Pengumuman", date: "12 Okt 2026", title: "Jadwal Pemeliharaan Server Sipentar & Layanan API", image: "/logosipentar.png" },
-              { tag: "Kegiatan", date: "10 Okt 2026", title: "Kerja Bakti Rutin Perbaikan Saluran Air Desa", image: "/rice_field_bg.png" },
-              { tag: "Pemberitahuan", date: "08 Okt 2026", title: "Batas Waktu Pengkinian Data Kartu Keluarga Baru", image: "/logosipentar.png" }
+              { tag: "Pengumuman", date: "Baru", title: "Sipentar Hadir untuk Layanan Pelaporan Infrastruktur Desa", image: "/logosipentar.png" },
+              { tag: "Kegiatan", date: "Informasi", title: "Kerja Bakti Rutin Perbaikan Saluran Air Desa", image: "/rice_field_bg.png" },
+              { tag: "Pemberitahuan", date: "Info", title: "Pastikan Data NIK dan KK Anda Sudah Terdaftar di Sistem", image: "/logosipentar.png" }
             ].map((news, idx) => (
               <AnimatedSection key={idx} delay={`delay-[${idx * 100}ms]`}>
                 <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-soft-sm hover:shadow-lg transition-all group cursor-pointer h-full flex flex-col">

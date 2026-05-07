@@ -67,7 +67,7 @@ function UserDashboard() {
     fetchReports();
     fetchNotifications();
 
-    const intervalId = setInterval(fetchNotifications, 10000);
+    const intervalId = setInterval(fetchNotifications, 30000);
     return () => clearInterval(intervalId);
   }, [navigate]);
 
@@ -137,7 +137,7 @@ function UserDashboard() {
     navigate("/login");
   };
 
-  const userReports = reports.filter(r => r.name === name);
+  const userReports = reports; // Backend now returns only the logged-in user's reports
   const pendingCount = userReports.filter(r => r.status === 'Menunggu').length;
   const processCount = userReports.filter(r => r.status === 'Diproses').length;
   const completedCount = userReports.filter(r => r.status === 'Selesai').length;

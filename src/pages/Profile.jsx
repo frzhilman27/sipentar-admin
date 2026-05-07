@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { compressImageToBase64 } from "../utils/imageUtils";
-import villageBg from '../assets/village-bg.png';
 
 function Profile({ isEmbedded = false }) {
     const [user, setUser] = useState({ name: "", role: "", email: "", nik: "" });

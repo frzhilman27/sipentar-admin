@@ -98,7 +98,7 @@ function AdminDashboard() {
     fetchNotifications();
     fetchStats();
 
-    const intervalId = setInterval(fetchNotifications, 10000);
+    const intervalId = setInterval(fetchNotifications, 30000);
     return () => clearInterval(intervalId);
   }, [navigate]);
 
