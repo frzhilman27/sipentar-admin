@@ -8,6 +8,17 @@ function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    
+    // Data Kependudukan Tambahan
+    const [rt, setRt] = useState("01");
+    const [rw, setRw] = useState("01");
+    const [tempatLahir, setTempatLahir] = useState("");
+    const [tanggalLahir, setTanggalLahir] = useState("");
+    const [jenisKelamin, setJenisKelamin] = useState("");
+    const [agama, setAgama] = useState("");
+    const [pekerjaan, setPekerjaan] = useState("");
+    const [noHp, setNoHp] = useState("");
+
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -21,7 +32,11 @@ function Register() {
         setLoading(true);
         setError("");
         try {
-            await api.post("/auth/register", { nik, name, email, password });
+            await api.post("/auth/register", { 
+                nik, name, email, password,
+                rt, rw, tempat_lahir: tempatLahir, tanggal_lahir: tanggalLahir,
+                jenis_kelamin: jenisKelamin, agama, pekerjaan, no_hp: noHp
+            });
             alert("Pendaftaran berhasil, silakan login menggunakan NIK Anda.");
             navigate("/login");
         } catch (err) {
@@ -44,7 +59,7 @@ function Register() {
                 <div className="absolute inset-0 backdrop-blur-[2px]"></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-md px-4 py-8 sm:px-4 sm:py-12">
+            <div className="relative z-10 w-full max-w-4xl px-4 py-8 sm:px-4 sm:py-12">
                 {/* Register Card - Formal Solid White */}
                 <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 p-6 sm:p-10 relative overflow-hidden w-full">
 
@@ -61,53 +76,175 @@ function Register() {
                         </div>
                     )}
 
-                    <form onSubmit={handleRegister} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Nomor Induk Kependudukan (NIK)</label>
-                            <input
-                                type="number"
-                                placeholder="16 Digit NIK KTP Resmi..."
-                                className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
-                                value={nik}
-                                onChange={(e) => setNik(e.target.value)}
-                                required
-                            />
-                        </div>
+                    <form onSubmit={handleRegister} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            
+                            {/* Kiri: Data Login & Identitas Dasar */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Informasi Akun</h3>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Nomor Induk Kependudukan (NIK)</label>
+                                    <input
+                                        type="number"
+                                        placeholder="16 Digit NIK KTP Resmi..."
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={nik}
+                                        onChange={(e) => setNik(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Nama Lengkap (Sesuai KTP)</label>
-                            <input
-                                type="text"
-                                placeholder="Misal: Bapak Ahmad"
-                                className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Nama Lengkap (Sesuai KTP)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Misal: Bapak Ahmad"
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Email Aktif</label>
-                            <input
-                                type="email"
-                                placeholder="ahmad@domain.com"
-                                className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Email Aktif</label>
+                                    <input
+                                        type="email"
+                                        placeholder="ahmad@domain.com"
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Buat Kata Sandi</label>
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Buat Kata Sandi</label>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Nomor HP/WhatsApp Aktif</label>
+                                    <input
+                                        type="tel"
+                                        placeholder="08123456789"
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={noHp}
+                                        onChange={(e) => setNoHp(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Kanan: Data Kependudukan Tambahan */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold text-slate-800 border-b pb-2">Data Kependudukan</h3>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">RT</label>
+                                        <select
+                                            value={rt}
+                                            onChange={(e) => setRt(e.target.value)}
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
+                                        >
+                                            {[...Array(15)].map((_, i) => {
+                                                const val = String(i + 1).padStart(2, '0');
+                                                return <option key={val} value={val}>{val}</option>;
+                                            })}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">RW</label>
+                                        <select
+                                            value={rw}
+                                            onChange={(e) => setRw(e.target.value)}
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
+                                        >
+                                            {[...Array(5)].map((_, i) => {
+                                                const val = String(i + 1).padStart(2, '0');
+                                                return <option key={val} value={val}>{val}</option>;
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Tempat Lahir</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Kota Lahir"
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                            value={tempatLahir}
+                                            onChange={(e) => setTempatLahir(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Tanggal Lahir</label>
+                                        <input
+                                            type="date"
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
+                                            value={tanggalLahir}
+                                            onChange={(e) => setTanggalLahir(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Jenis Kelamin</label>
+                                        <select
+                                            value={jenisKelamin}
+                                            onChange={(e) => setJenisKelamin(e.target.value)}
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
+                                            required
+                                        >
+                                            <option value="" disabled>Pilih</option>
+                                            <option value="Laki-laki">Laki-laki</option>
+                                            <option value="Perempuan">Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Agama</label>
+                                        <select
+                                            value={agama}
+                                            onChange={(e) => setAgama(e.target.value)}
+                                            className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
+                                            required
+                                        >
+                                            <option value="" disabled>Pilih</option>
+                                            <option value="Islam">Islam</option>
+                                            <option value="Kristen">Kristen</option>
+                                            <option value="Katolik">Katolik</option>
+                                            <option value="Hindu">Hindu</option>
+                                            <option value="Buddha">Buddha</option>
+                                            <option value="Konghucu">Konghucu</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-800 mb-1.5 pl-1">Pekerjaan</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Misal: Pegawai Negeri, Wiraswasta"
+                                        className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 placeholder-slate-400 outline-none transition bg-white shadow-sm font-medium"
+                                        value={pekerjaan}
+                                        onChange={(e) => setPekerjaan(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <button
