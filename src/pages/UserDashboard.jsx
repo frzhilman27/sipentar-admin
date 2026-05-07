@@ -292,17 +292,45 @@ function UserDashboard() {
                        ) : (
                          <div className="divide-y divide-slate-50">
                            {activeReports.map(r => (
-                              <div key={r.id} className="p-6 flex items-start justify-between gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => fetchHistory(r.id)}>
-                                <div>
-                                   <p className="text-sm font-bold text-slate-900 mb-1">{r.judul}</p>
-                                   <p className="text-xs text-slate-500 font-medium truncate max-w-xs">{r.isi}</p>
-                                   <p className="text-[10px] text-slate-400 mt-2 font-bold tracking-wide">
-                                     {new Date(r.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                   </p>
+                              <div key={r.id} className="p-6 flex flex-col gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 cursor-pointer" onClick={() => fetchHistory(r.id)}>
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                     <p className="text-sm font-bold text-slate-900 mb-1">{r.judul}</p>
+                                     <p className="text-xs font-medium text-slate-500 mb-1">Pelapor: <span className="font-bold text-slate-700">{r.name}</span></p>
+                                     <p className="text-xs text-slate-600 font-medium line-clamp-2">{r.isi}</p>
+                                     <p className="text-[10px] text-slate-400 mt-2 font-bold tracking-wide">
+                                       {new Date(r.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                     </p>
+                                  </div>
+                                  <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase border ${r.status === 'Selesai' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                                    {r.status}
+                                  </span>
                                 </div>
-                                <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase border ${r.status === 'Selesai' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                                  {r.status}
-                                </span>
+                                
+                                {/* Menampilkan Thumbnail Minimalis di Beranda */}
+                                {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                                  <div className="flex gap-2 mt-1">
+                                    {r.image_url && (
+                                      <img 
+                                        src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} 
+                                        alt="Lampiran" 
+                                        className="w-12 h-12 object-cover rounded border border-slate-200 cursor-zoom-in hover:opacity-85 shadow-sm"
+                                        onClick={(e) => { e.stopPropagation(); setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`); }}
+                                      />
+                                    )}
+                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
+                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
+                                        <img 
+                                          key={idx}
+                                          src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} 
+                                          alt={`Bukti Admin ${idx + 1}`} 
+                                          className="w-12 h-12 object-cover rounded border border-slate-200 cursor-zoom-in hover:opacity-85 shadow-sm ring-1 ring-green-500/30"
+                                          onClick={(e) => { e.stopPropagation(); setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`); }}
+                                        />
+                                      ))
+                                    )}
+                                  </div>
+                                )}
                               </div>
                            ))}
                          </div>

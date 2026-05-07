@@ -418,7 +418,21 @@ function AdminDashboard() {
                                <span className="text-xs">{new Date(r.created_at).toLocaleDateString('id-ID')}</span>
                              </td>
                              <td className="p-4 font-bold text-slate-800">{r.name}</td>
-                             <td className="p-4 text-slate-600 max-w-[200px] truncate">{r.judul}</td>
+                             <td className="p-4 text-slate-600">
+                               <p className="font-medium max-w-[200px] truncate text-slate-800">{r.judul}</p>
+                               {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                                 <div className="flex gap-1.5 mt-2">
+                                    {r.image_url && (
+                                      <img src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} className="w-8 h-8 rounded object-cover cursor-zoom-in border border-slate-200 hover:opacity-80 transition-opacity shadow-sm" onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)} alt="Lampiran" />
+                                    )}
+                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
+                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
+                                        <img key={idx} src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} className="w-8 h-8 rounded object-cover cursor-zoom-in border border-green-200 hover:opacity-80 transition-opacity shadow-sm" onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)} alt={`Bukti ${idx+1}`} />
+                                      ))
+                                    )}
+                                 </div>
+                               )}
+                             </td>
                              <td className="p-4 text-center">
                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase border ${r.status === 'Selesai' ? 'bg-green-50 text-green-700 border-green-200' : r.status === 'Diproses' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                  {r.status}
@@ -441,7 +455,19 @@ function AdminDashboard() {
                           <div className="flex justify-between items-start mb-2">
                              <div>
                                <p className="font-bold text-slate-900 text-sm">{r.judul}</p>
-                               <p className="text-xs text-slate-500 font-medium">{r.name}</p>
+                               <p className="text-xs text-slate-500 font-medium mt-0.5">Pelapor: <span className="text-slate-700 font-bold">{r.name}</span></p>
+                               {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                                 <div className="flex gap-2 mt-2">
+                                    {r.image_url && (
+                                      <img src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} className="w-10 h-10 rounded object-cover cursor-zoom-in border border-slate-200 hover:opacity-80 shadow-sm" onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)} alt="Lampiran" />
+                                    )}
+                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
+                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
+                                        <img key={idx} src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} className="w-10 h-10 rounded object-cover cursor-zoom-in border border-green-200 hover:opacity-80 shadow-sm" onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)} alt={`Bukti ${idx+1}`} />
+                                      ))
+                                    )}
+                                 </div>
+                               )}
                              </div>
                              {r.status === 'Menunggu' && (
                                 <span className="bg-red-100 text-red-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-red-200 shrink-0">Butuh Aksi</span>
