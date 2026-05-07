@@ -141,6 +141,7 @@ function UserDashboard() {
   const pendingCount = userReports.filter(r => r.status === 'Menunggu').length;
   const processCount = userReports.filter(r => r.status === 'Diproses').length;
   const completedCount = userReports.filter(r => r.status === 'Selesai').length;
+  const activeReports = userReports.filter(r => r.status === 'Diproses' || r.status === 'Selesai');
 
   return (
     <DashboardLayout
@@ -279,18 +280,18 @@ function UserDashboard() {
                     </div>
                   </div>
 
-                  {/* Aktivitas Terakhir (Riwayat Aktivitas) */}
+                  {/* Aktivitas Terakhir (Riwayat Aktivitas) diganti menjadi Laporan Dalam Proses/Selesai */}
                   <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-                     <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center">
-                        <h3 className="text-base font-bold text-slate-900">Riwayat Aktivitas</h3>
-                        <button onClick={() => setActiveMainTab('histori')} className="text-sm font-bold text-sipentar-blue hover:text-sipentar-blue-dark">Lihat Semua</button>
+                     <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                        <h3 className="text-base font-bold text-slate-900">Laporan Diproses & Selesai</h3>
+                        <button onClick={() => setActiveMainTab('histori')} className="text-sm font-bold text-sipentar-blue hover:text-sipentar-blue-dark">Semua Laporan</button>
                      </div>
                      <div className="p-0">
-                       {userReports.length === 0 ? (
-                          <div className="p-8 text-center text-slate-500 text-sm font-medium">Belum ada aktivitas.</div>
+                       {activeReports.length === 0 ? (
+                          <div className="p-8 text-center text-slate-500 text-sm font-medium">Belum ada laporan yang diproses atau selesai.</div>
                        ) : (
                          <div className="divide-y divide-slate-50">
-                           {userReports.slice(0, 3).map(r => (
+                           {activeReports.map(r => (
                               <div key={r.id} className="p-6 flex items-start justify-between gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => fetchHistory(r.id)}>
                                 <div>
                                    <p className="text-sm font-bold text-slate-900 mb-1">{r.judul}</p>
@@ -299,7 +300,7 @@ function UserDashboard() {
                                      {new Date(r.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                                    </p>
                                 </div>
-                                <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase border ${r.status === 'Selesai' ? 'bg-green-50 text-green-700 border-green-200' : r.status === 'Diproses' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase border ${r.status === 'Selesai' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                                   {r.status}
                                 </span>
                               </div>
