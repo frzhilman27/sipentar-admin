@@ -102,7 +102,7 @@ function Laporan({ onReportAdded }) {
               onChange={(e) => setRt(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sipentar-blue/30 focus:border-blue-500 focus:bg-white outline-none transition-all text-slate-900 font-bold appearance-none cursor-pointer"
             >
-              {[...Array(15)].map((_, i) => {
+              {[...Array(27)].map((_, i) => {
                 const val = String(i + 1).padStart(2, '0');
                 return <option key={val} value={val}>RT {val}</option>
               })}
@@ -115,7 +115,7 @@ function Laporan({ onReportAdded }) {
               onChange={(e) => setRw(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sipentar-blue/30 focus:border-blue-500 focus:bg-white outline-none transition-all text-slate-900 font-bold appearance-none cursor-pointer"
             >
-              {[...Array(5)].map((_, i) => {
+              {[...Array(9)].map((_, i) => {
                 const val = String(i + 1).padStart(2, '0');
                 return <option key={val} value={val}>RW {val}</option>
               })}

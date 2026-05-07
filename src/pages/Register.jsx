@@ -155,7 +155,7 @@ function Register() {
                                             onChange={(e) => setRt(e.target.value)}
                                             className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
                                         >
-                                            {[...Array(15)].map((_, i) => {
+                                            {[...Array(27)].map((_, i) => {
                                                 const val = String(i + 1).padStart(2, '0');
                                                 return <option key={val} value={val}>{val}</option>;
                                             })}
@@ -168,7 +168,7 @@ function Register() {
                                             onChange={(e) => setRw(e.target.value)}
                                             className="w-full px-4 py-3.5 border border-slate-300 rounded-xl focus:ring-4 focus:ring-sipentar-blue/20 focus:border-sipentar-blue text-slate-900 outline-none transition bg-white shadow-sm font-medium"
                                         >
-                                            {[...Array(5)].map((_, i) => {
+                                            {[...Array(9)].map((_, i) => {
                                                 const val = String(i + 1).padStart(2, '0');
                                                 return <option key={val} value={val}>{val}</option>;
                                             })}
