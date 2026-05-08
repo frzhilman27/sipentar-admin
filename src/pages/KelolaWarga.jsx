@@ -4,6 +4,7 @@ import api from "../services/api";
 function KelolaWarga() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -93,12 +94,20 @@ function KelolaWarga() {
                     )}
                   </td>
                   <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
-                    <button
-                      onClick={() => handleVerify(user.id, user.is_verified)}
-                      className={`inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${user.is_verified ? 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-rose-600' : 'bg-sipentar-green text-white shadow-sm shadow-emerald-600/30 hover:bg-sipentar-green-dark'}`}
-                    >
-                      {user.is_verified ? 'Cabut Verifikasi' : 'Verifikasi Sekarang'}
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => setSelectedUser(user)}
+                        className="inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-sipentar-blue/10 text-sipentar-blue hover:bg-sipentar-blue hover:text-white"
+                      >
+                        Lihat Detail
+                      </button>
+                      <button
+                        onClick={() => handleVerify(user.id, user.is_verified)}
+                        className={`inline-flex items-center justify-center w-full px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${user.is_verified ? 'bg-white border border-slate-300 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200' : 'bg-sipentar-green text-white shadow-sm shadow-emerald-600/30 hover:bg-sipentar-green-dark'}`}
+                      >
+                        {user.is_verified ? 'Cabut Verifikasi' : 'Verifikasi Sekarang'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -106,6 +115,67 @@ function KelolaWarga() {
           </tbody>
         </table>
       </div>
+
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden relative border border-slate-100">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-lg text-slate-900">Detail Data Warga</h3>
+              <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                <div className="w-16 h-16 rounded-full bg-sipentar-blue/10 text-sipentar-blue flex items-center justify-center font-bold text-2xl">
+                  {selectedUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="font-bold text-xl text-slate-900">{selectedUser.name}</h4>
+                  <p className="text-sm font-medium text-slate-500">NIK: <span className="font-mono text-slate-700">{selectedUser.nik}</span></p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Kependudukan</p>
+                  <p className="text-sm font-semibold text-slate-800">RT {selectedUser.rt} / RW {selectedUser.rw}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pekerjaan</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.pekerjaan || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tempat, Tanggal Lahir</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.tempat_lahir || '-'}, {selectedUser.tanggal_lahir ? new Date(selectedUser.tanggal_lahir).toLocaleDateString('id-ID') : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Jenis Kelamin</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.jenis_kelamin || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Agama</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.agama || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kontak</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.email}</p>
+                  <p className="text-sm font-semibold text-slate-600">{selectedUser.no_hp || '-'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button onClick={() => setSelectedUser(null)} className="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg shadow-sm transition-colors">Tutup</button>
+              <button
+                onClick={() => { handleVerify(selectedUser.id, selectedUser.is_verified); setSelectedUser(null); }}
+                className={`px-4 py-2 text-sm font-bold rounded-lg shadow-sm transition-all ${selectedUser.is_verified ? 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100' : 'bg-sipentar-green text-white hover:bg-sipentar-green-dark'}`}
+              >
+                {selectedUser.is_verified ? 'Cabut Verifikasi' : 'Verifikasi Warga Ini'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
