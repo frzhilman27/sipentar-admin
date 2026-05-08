@@ -179,6 +179,27 @@ function AdminDashboard() {
       const base64Images = await Promise.all(
           evidenceImages.map(img => compressImageToBase64(img, 800, 800, 0.7))
       );
+      
+      const report = reports.find(r => r.id === evidenceTargetId);
+      const kategoriLaporan = report ? report.judul : "Bukti Pengerjaan Infrastruktur";
+
+      // AI Validation for each image
+      for (const base64 of base64Images) {
+        try {
+          const aiCheck = await api.post("/ai/validate-photo", { 
+            imageBase64: base64,
+            kategoriLaporan: "Bukti penanganan untuk masalah: " + kategoriLaporan
+          });
+          if (aiCheck.data && aiCheck.data.isValid === false) {
+             alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa salah satu foto bukti tidak relevan dengan penanganan untuk kategori laporan "${kategoriLaporan}". Silakan unggah foto bukti pengerjaan yang valid.`);
+             setEvidenceLoading(false);
+             return;
+          }
+        } catch (err) {
+          console.warn("AI Validation failed, proceeding anyway", err);
+        }
+      }
+
       await handleUpdateStatus(evidenceTargetId, evidenceTargetStatus, base64Images);
     } catch (err) {
       console.error(err);

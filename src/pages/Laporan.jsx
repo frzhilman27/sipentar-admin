@@ -69,9 +69,12 @@ function Laporan({ onReportAdded }) {
       
       // AI Validation
       try {
-        const aiCheck = await api.post("/ai/validate-photo", { imageBase64: base64Image });
+        const aiCheck = await api.post("/ai/validate-photo", { 
+            imageBase64: base64Image,
+            kategoriLaporan: jenisLaporan
+        });
         if (aiCheck.data && aiCheck.data.isValid === false) {
-            alert("⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto ini tidak relevan dengan infrastruktur atau fasilitas publik. Silakan unggah foto kejadian yang sebenarnya.");
+            alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto ini tidak relevan dengan kategori laporan "${jenisLaporan}". Silakan unggah foto kejadian yang sebenarnya sesuai pilihan Anda.`);
             setLoading(false);
             isSubmittingRef.current = false;
             return;
