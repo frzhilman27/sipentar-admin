@@ -1,6 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
 import { compressImageToBase64 } from "../utils/imageUtils";
+
+// Generate a unique idempotency key per submission attempt
+function generateIdempotencyKey() {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+}
 
 function Laporan({ onReportAdded }) {
   const [jenisLaporan, setJenisLaporan] = useState("Jalan Rusak");
@@ -10,6 +15,9 @@ function Laporan({ onReportAdded }) {
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0); // Cooldown timer in seconds
+  const isSubmittingRef = useRef(false); // Prevent double-click race condition
+  const cooldownTimerRef = useRef(null);
 
   // Clean up object URL to avoid memory leaks
   useEffect(() => {
@@ -22,9 +30,38 @@ function Laporan({ onReportAdded }) {
     }
   }, [image]);
 
+  // Cleanup cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    };
+  }, []);
+
+  const startCooldown = (seconds = 30) => {
+    setCooldown(seconds);
+    if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    cooldownTimerRef.current = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(cooldownTimerRef.current);
+          cooldownTimerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Guard: prevent double-click submissions
+    if (isSubmittingRef.current || loading || cooldown > 0) return;
+    isSubmittingRef.current = true;
     setLoading(true);
+
+    // Generate a unique idempotency key for this submission
+    const idempotencyKey = generateIdempotencyKey();
 
     let base64Image = null;
     if (image) {
@@ -36,6 +73,7 @@ function Laporan({ onReportAdded }) {
         if (aiCheck.data && aiCheck.data.isValid === false) {
             alert("⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto ini tidak relevan dengan infrastruktur atau fasilitas publik. Silakan unggah foto kejadian yang sebenarnya.");
             setLoading(false);
+            isSubmittingRef.current = false;
             return;
         }
       } catch (err) {
@@ -50,18 +88,32 @@ function Laporan({ onReportAdded }) {
     };
 
     try {
-      await api.post("/laporan", payload);
+      await api.post("/laporan", payload, {
+        headers: { 'X-Idempotency-Key': idempotencyKey }
+      });
       alert("Laporan berhasil dikirim 🔥");
       setJenisLaporan("Jalan Rusak");
       setRt("01");
       setRw("01");
       setIsi("");
       setImage(null);
+      // Start cooldown to prevent rapid re-submission
+      startCooldown(30);
       if (onReportAdded) onReportAdded();
     } catch (err) {
-      alert(err.response?.data?.error || "Gagal kirim laporan");
+      const status = err.response?.status;
+      const message = err.response?.data?.error;
+      if (status === 409) {
+        alert("⚠️ " + (message || "Laporan serupa sudah pernah dikirimkan. Silakan cek daftar laporan Anda."));
+      } else if (status === 429) {
+        alert("⏳ " + (message || "Harap tunggu beberapa menit sebelum mengirim laporan serupa."));
+        startCooldown(60); // Longer cooldown on rate-limit
+      } else {
+        alert(message || "Gagal kirim laporan");
+      }
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -182,11 +234,17 @@ function Laporan({ onReportAdded }) {
           </div>
         </div>
 
-        <div className="flex justify-end pt-5 border-t border-slate-200 transition-colors">
+        <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-5 border-t border-slate-200 transition-colors">
+          {cooldown > 0 && (
+            <p className="text-xs font-bold text-slate-500 order-2 sm:order-1">
+              <svg className="w-4 h-4 inline mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Dapat mengirim lagi dalam <span className="text-sipentar-blue">{cooldown}s</span>
+            </p>
+          )}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full sm:w-auto px-8 py-3 bg-sipentar-blue hover:bg-sipentar-blue-dark text-white font-bold tracking-wide rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={loading || cooldown > 0}
+            className="w-full sm:w-auto px-8 py-3 bg-sipentar-blue hover:bg-sipentar-blue-dark text-white font-bold tracking-wide rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
           >
             {loading ? (
               <>
@@ -195,6 +253,11 @@ function Laporan({ onReportAdded }) {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Memproses Laporan...
+              </>
+            ) : cooldown > 0 ? (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Tunggu {cooldown}s...
               </>
             ) : (
               <>
