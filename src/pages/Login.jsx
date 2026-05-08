@@ -1,30 +1,13 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
-  // State untuk melacak Portal yang aktif (warga atau admin)
-  const [roleTarget, setRoleTarget] = useState("user");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Penyesuaian tema warna & input berdasarkan role aktif
-  const isUser = roleTarget === "user";
-
-  // Custom Dynamic Styling based on role, matching Premium Theme
-  const selectionColor = isUser ? "selection:bg-blue-200" : "selection:bg-slate-200";
-  const bgImage = `url('/rice_field_bg.png')`;
-
-  const inputFocusRing = isUser
-    ? "focus:ring-sipentar-blue/20 focus:border-sipentar-blue"
-    : "focus:ring-slate-500/20 focus:border-slate-600";
-
-  const buttonStyle = isUser
-    ? "bg-sipentar-blue hover:bg-sipentar-blue-dark shadow-blue-700/30"
-    : "bg-slate-800 hover:bg-slate-900 shadow-slate-800/30";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,108 +17,96 @@ function Login() {
       const res = await api.post("/auth/login", {
         identifier,
         password,
-        role_target: roleTarget
+        role_target: "admin"
       });
+
+      // Double-check: backend should enforce this, but verify on client too
+      if (res.data.role !== "admin") {
+        setError("Akses Ditolak: Halaman ini adalah area terlarang khusus Administrator.");
+        localStorage.clear();
+        setLoading(false);
+        return;
+      }
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("name", res.data.name);
-      
-      if (res.data.role === 'admin') {
-          navigate("/admin/dashboard");
-      } else {
-          navigate("/user/dashboard");
-      }
+      navigate("/admin/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || "Kredensial tidak valid");
+      const msg = err.response?.data?.message || err.response?.data?.error || "Kredensial tidak valid.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRoleSwitch = (newRole) => {
-    setRoleTarget(newRole);
-    setIdentifier(""); // Reset input saat switch
-    setPassword("");
-    setError("");
-  };
-
   return (
-    <div className={`min-h-screen flex items-center justify-center relative bg-slate-900 font-sans ${selectionColor} overflow-hidden`}>
-      {/* Background Image with transitions */}
-      <div className="absolute inset-0 transition-opacity duration-1000 ease-in-out z-0">
+    <div className="min-h-screen flex items-center justify-center relative bg-slate-950 font-sans selection:bg-slate-200 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0">
         <div
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 transform scale-105`}
-          style={{ backgroundImage: bgImage }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transform scale-105"
+          style={{ backgroundImage: `url('/rice_field_bg.png')` }}
         >
-          {/* Blend Overlays: Dark Blue/Slate */}
-          <div className={`absolute inset-0 transition-colors duration-1000 ${isUser ? 'bg-slate-900/60' : 'bg-slate-900/80'}`}></div>
-          {/* Dynamic Frosted Base Blur */}
-          <div className={`absolute inset-0 backdrop-blur-[2px] transition-colors duration-1000`}></div>
+          <div className="absolute inset-0 bg-slate-950/85"></div>
+          <div className="absolute inset-0 backdrop-blur-sm"></div>
         </div>
       </div>
 
+      {/* Decorative grid lines */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+        backgroundSize: '40px 40px'
+      }}></div>
+
       <div className="relative z-10 w-full max-w-md px-4 py-8 sm:px-4 sm:py-12">
-        {/* Login Card - Formal Solid White */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative transition-all duration-500 p-6 sm:p-10 w-full">
+        {/* Admin Login Card - Dark Theme */}
+        <div className="bg-slate-900/80 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden relative transition-all duration-500 p-6 sm:p-10 w-full ring-1 ring-white/5">
+
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500"></div>
 
           <div className="text-center mb-6 sm:mb-8">
-            <img src="/logosipentar.png" alt="Logo Sipentar" className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl mx-auto object-cover shadow-md mb-4 sm:mb-5 ring-2 ring-white ring-offset-2 ${isUser ? 'ring-offset-blue-50' : 'ring-offset-slate-50'}`} />
-            <h2 className="font-outfit text-2xl font-extrabold tracking-tight text-slate-900">Portal Sipentar</h2>
-            <p className={`text-xs font-bold mt-1.5 uppercase tracking-widest ${isUser ? 'text-sipentar-blue' : 'text-slate-600'}`}>
-              {isUser ? "Akses Warga Desa" : "Divisi Administrator"}
+            <div className="relative inline-block">
+              <img src="/logosipentar.png" alt="Logo Sipentar" className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl mx-auto object-cover shadow-lg mb-4 sm:mb-5 ring-2 ring-amber-500/30 ring-offset-2 ring-offset-slate-900" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-slate-900" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+              </div>
+            </div>
+            <h2 className="font-outfit text-2xl font-extrabold tracking-tight text-white">Portal Administrator</h2>
+            <p className="text-xs font-bold mt-1.5 uppercase tracking-[0.2em] text-amber-400/80">
+              Sistem Pelaporan Desa Terpadu
             </p>
           </div>
 
-          {/* Role Toggle Switch */}
-          <div className="flex flex-col sm:flex-row p-1.5 rounded-xl mb-6 sm:mb-8 relative z-20 bg-slate-100 shadow-inner overflow-hidden border border-slate-200 gap-1 sm:gap-0">
-            <button
-              type="button"
-              onClick={() => handleRoleSwitch("user")}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${isUser
-                ? "bg-white text-sipentar-blue shadow-sm ring-1 ring-slate-200"
-                : "text-slate-500 hover:text-slate-700"
-                }`}
-            >
-              Portal Warga
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRoleSwitch("admin")}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${!isUser
-                ? "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200"
-                : "text-slate-500 hover:text-slate-700"
-                }`}
-            >
-              Portal Admin
-            </button>
+          {/* Security Badge */}
+          <div className="flex items-center justify-center gap-2 mb-6 py-2.5 px-4 rounded-lg bg-slate-800/60 border border-slate-700/50">
+            <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+            <span className="text-[11px] font-bold text-slate-400 tracking-wide">Area Terlarang — Khusus Aparatur Desa</span>
           </div>
 
           {error && (
-            <div className="border-l-4 p-4 rounded-r-lg mb-6 flex items-start bg-red-50 border-red-500">
-              <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <p className="text-sm font-bold text-red-800">{error}</p>
+            <div className="border-l-4 p-4 rounded-r-lg mb-6 flex items-start bg-red-950/50 border-red-500">
+              <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p className="text-sm font-bold text-red-300">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold mb-1.5 pl-1 text-slate-800">
-                {isUser ? "Nomor Induk Kependudukan (NIK)" : "Alamat Email Admin"}
+              <label className="block text-sm font-bold mb-1.5 pl-1 text-slate-300">
+                Alamat Email Administrator
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    {isUser ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    )}
+                  <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <input
-                  type={isUser ? "text" : "email"}
-                  placeholder={isUser ? "Masukkan 16 Digit NIK..." : "admin@sipentar.com"}
-                  className={`w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl outline-none transition font-medium text-slate-900 placeholder-slate-400 shadow-sm ${inputFocusRing}`}
+                  type="email"
+                  placeholder="admin@sipentar.desa.id"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-800/80 border border-slate-600/50 rounded-xl outline-none transition font-medium text-white placeholder-slate-500 shadow-sm focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   required
@@ -144,17 +115,15 @@ function Login() {
             </div>
 
             <div>
-              <div className="flex justify-between items-end mb-1.5 pl-1">
-                <label className="block text-sm font-bold text-slate-800">Kata Sandi</label>
-              </div>
+              <label className="block text-sm font-bold mb-1.5 pl-1 text-slate-300">Kata Sandi</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className={`w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl outline-none transition font-medium text-slate-900 placeholder-slate-400 shadow-sm ${inputFocusRing}`}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-800/80 border border-slate-600/50 rounded-xl outline-none transition font-medium text-white placeholder-slate-500 shadow-sm focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -165,25 +134,17 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full mt-6 text-white font-bold py-3.5 rounded-xl transition-all duration-300 shadow-md disabled:opacity-50 transform active:scale-95 ${buttonStyle}`}
+              className="w-full mt-6 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-900 font-extrabold py-3.5 rounded-xl transition-all duration-300 shadow-lg shadow-amber-600/20 disabled:opacity-50 transform active:scale-95"
             >
-              {loading ? "Memproses Data..." : "Masuk"}
+              {loading ? "Memverifikasi Akses..." : "Masuk ke Dashboard Admin"}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-            {isUser ? (
-              <p className="text-sm text-slate-600 font-medium">
-                Warga baru mendaftar?{' '}
-                <Link to="/register" className="text-sipentar-blue font-bold hover:text-sipentar-blue-dark hover:underline transition">
-                  Buat Akses Pelapor
-                </Link>
-              </p>
-            ) : (
-              <p className="text-xs text-slate-500 font-medium tracking-wide">
-                <span className="text-slate-500">⚠️</span> Akses Khusus Aparatur Desa Terdaftar.
-              </p>
-            )}
+          <div className="mt-8 pt-6 border-t border-slate-700/50 text-center">
+            <p className="text-xs text-slate-500 font-medium tracking-wide flex items-center justify-center gap-2">
+              <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              Akses terbatas hanya untuk petugas berwenang.
+            </p>
           </div>
         </div>
       </div>
