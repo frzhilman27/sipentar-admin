@@ -43,6 +43,25 @@ function AdminDashboard() {
     }
   }, [evidenceImages]);
 
+  const renderMedia = (urlArray, fallbackUrl, borderColorClass) => {
+    let urls = [];
+    if (urlArray && Array.isArray(urlArray) && urlArray.length > 0) {
+      urls = urlArray;
+    } else if (fallbackUrl) {
+      urls = [fallbackUrl];
+    }
+
+    return urls.map((url, idx) => {
+      const fullUrl = url.startsWith('data:image') || url.startsWith('blob:') ? url : `${IMAGE_BASE_URL}/uploads/${url}`;
+      const isVideo = fullUrl.match(/\.(mp4|webm|ogg)$/i);
+      if (isVideo) {
+        return <video key={idx} src={fullUrl} className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border ${borderColorClass} shadow-sm`} muted playsInline controls />;
+      } else {
+        return <img key={idx} src={fullUrl} className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border ${borderColorClass} cursor-zoom-in hover:opacity-85 shadow-sm`} onClick={() => setSelectedImage(fullUrl)} alt={`Lampiran ${idx+1}`} />;
+      }
+    });
+  };
+
   const role = localStorage.getItem("role");
   const name = localStorage.getItem("name");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -171,27 +190,25 @@ function AdminDashboard() {
 
   const handleConfirmEvidence = async () => {
     if (evidenceImages.length === 0) {
-      alert("Pilih minimal satu foto bukti pengerjaan!");
+      alert("Pilih minimal satu foto/video bukti pengerjaan!");
       return;
     }
     setEvidenceLoading(true);
     try {
-      const base64Images = await Promise.all(
-          evidenceImages.map(img => compressImageToBase64(img, 800, 800, 0.7))
-      );
-      
       const report = reports.find(r => r.id === evidenceTargetId);
       const kategoriLaporan = report ? report.judul : "Bukti Pengerjaan Infrastruktur";
 
-      // AI Validation for each image
-      for (const base64 of base64Images) {
+      // AI Validation for the first image only
+      const firstImage = evidenceImages.find(file => file.type.startsWith("image/"));
+      if (firstImage) {
         try {
+          const base64 = await compressImageToBase64(firstImage, 800, 800, 0.7);
           const aiCheck = await api.post("/ai/validate-photo", { 
             imageBase64: base64,
             kategoriLaporan: "Bukti penanganan untuk masalah: " + kategoriLaporan
           });
           if (aiCheck.data && aiCheck.data.isValid === false) {
-             alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa salah satu foto bukti tidak relevan dengan penanganan untuk kategori laporan "${kategoriLaporan}". Silakan unggah foto bukti pengerjaan yang valid.`);
+             alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto bukti tidak relevan dengan penanganan untuk kategori laporan "${kategoriLaporan}". Silakan unggah foto bukti pengerjaan yang valid.`);
              setEvidenceLoading(false);
              return;
           }
@@ -200,10 +217,21 @@ function AdminDashboard() {
         }
       }
 
-      await handleUpdateStatus(evidenceTargetId, evidenceTargetStatus, base64Images);
+      const formData = new FormData();
+      formData.append("status", evidenceTargetStatus);
+      evidenceImages.forEach(file => {
+          formData.append("admin_media", file);
+      });
+
+      await api.put(`/laporan/${evidenceTargetId}/status`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      fetchReports();
+      setShowEvidenceModal(false);
+      setEvidenceImages([]);
     } catch (err) {
       console.error(err);
-      alert("Gagal memproses foto");
+      alert("Gagal memproses file");
       setEvidenceLoading(false);
     }
   };
@@ -299,7 +327,11 @@ function AdminDashboard() {
                         {evidencePreviewUrls.map((url, i) => (
                             <div key={i} className="relative inline-block shrink-0">
                                 <div className="w-32 h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative z-30">
-                                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                    {evidenceImages[i].type.startsWith("video/") ? (
+                                      <video src={url} className="w-full h-full object-cover" muted playsInline />
+                                    ) : (
+                                      <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -441,16 +473,10 @@ function AdminDashboard() {
                              <td className="p-4 font-bold text-slate-800">{r.name}</td>
                              <td className="p-4 text-slate-600">
                                <p className="font-medium max-w-[200px] truncate text-slate-800">{r.judul}</p>
-                               {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                               {(r.image_url || (r.media_urls && r.media_urls.length > 0) || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
                                  <div className="flex gap-1.5 mt-2">
-                                    {r.image_url && (
-                                      <img src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} className="w-8 h-8 rounded object-cover cursor-zoom-in border border-slate-200 hover:opacity-80 transition-opacity shadow-sm" onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)} alt="Lampiran" />
-                                    )}
-                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
-                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
-                                        <img key={idx} src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} className="w-8 h-8 rounded object-cover cursor-zoom-in border border-green-200 hover:opacity-80 transition-opacity shadow-sm" onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)} alt={`Bukti ${idx+1}`} />
-                                      ))
-                                    )}
+                                    {renderMedia(r.media_urls, r.image_url, 'border-slate-200')}
+                                    {renderMedia(r.admin_evidence_urls, null, 'border-green-200')}
                                  </div>
                                )}
                              </td>
@@ -477,16 +503,10 @@ function AdminDashboard() {
                              <div>
                                <p className="font-bold text-slate-900 text-sm">{r.judul}</p>
                                <p className="text-xs text-slate-500 font-medium mt-0.5">Pelapor: <span className="text-slate-700 font-bold">{r.name}</span></p>
-                               {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                               {(r.image_url || (r.media_urls && r.media_urls.length > 0) || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
                                  <div className="flex gap-2 mt-2">
-                                    {r.image_url && (
-                                      <img src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} className="w-10 h-10 rounded object-cover cursor-zoom-in border border-slate-200 hover:opacity-80 shadow-sm" onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)} alt="Lampiran" />
-                                    )}
-                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
-                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
-                                        <img key={idx} src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} className="w-10 h-10 rounded object-cover cursor-zoom-in border border-green-200 hover:opacity-80 shadow-sm" onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)} alt={`Bukti ${idx+1}`} />
-                                      ))
-                                    )}
+                                    {renderMedia(r.media_urls, r.image_url, 'border-slate-200')}
+                                    {renderMedia(r.admin_evidence_urls, null, 'border-green-200')}
                                  </div>
                                )}
                              </div>
@@ -548,18 +568,15 @@ function AdminDashboard() {
                         <p className="text-slate-600 leading-relaxed text-sm mb-4">{r.isi}</p>
 
                         <div className="flex flex-wrap gap-4 mt-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                          {r.image_url && (
+                          {(r.image_url || (r.media_urls && r.media_urls.length > 0)) && (
                             <div className="flex flex-col gap-2">
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 Lampiran Warga
                               </p>
-                              <img 
-                                src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} 
-                                alt="Lampiran" 
-                                className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-slate-200 cursor-zoom-in hover:opacity-85 hover:ring-2 hover:ring-sipentar-blue/50 transition-all shadow-sm"
-                                onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)}
-                              />
+                              <div className="flex flex-wrap gap-2">
+                                {renderMedia(r.media_urls, r.image_url, 'border-slate-200')}
+                              </div>
                             </div>
                           )}
                           {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
@@ -569,15 +586,7 @@ function AdminDashboard() {
                                 Bukti Penanganan
                               </p>
                               <div className="flex flex-wrap gap-2">
-                                {(Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
-                                  <img 
-                                    key={idx}
-                                    src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} 
-                                    alt={`Bukti Admin ${idx + 1}`} 
-                                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-slate-200 cursor-zoom-in hover:opacity-85 hover:ring-2 hover:ring-green-500/50 transition-all shadow-sm"
-                                    onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)}
-                                  />
-                                ))}
+                                {renderMedia(r.admin_evidence_urls, null, 'border-green-200')}
                               </div>
                             </div>
                           )}

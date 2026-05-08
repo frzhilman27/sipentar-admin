@@ -12,8 +12,8 @@ function Laporan({ onReportAdded }) {
   const [rt, setRt] = useState("01");
   const [rw, setRw] = useState("01");
   const [isi, setIsi] = useState("");
-  const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [media, setMedia] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0); // Cooldown timer in seconds
   const isSubmittingRef = useRef(false); // Prevent double-click race condition
@@ -21,14 +21,14 @@ function Laporan({ onReportAdded }) {
 
   // Clean up object URL to avoid memory leaks
   useEffect(() => {
-    if (image) {
-      const url = URL.createObjectURL(image);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
+    if (media.length > 0) {
+      const urls = media.map(file => URL.createObjectURL(file));
+      setPreviewUrls(urls);
+      return () => urls.forEach(url => URL.revokeObjectURL(url));
     } else {
-      setPreviewUrl(null);
+      setPreviewUrls([]);
     }
-  }, [image]);
+  }, [media]);
 
   // Cleanup cooldown timer on unmount
   useEffect(() => {
@@ -52,6 +52,10 @@ function Laporan({ onReportAdded }) {
     }, 1000);
   };
 
+  const handleRemoveMedia = (index) => {
+      setMedia(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,43 +67,49 @@ function Laporan({ onReportAdded }) {
     // Generate a unique idempotency key for this submission
     const idempotencyKey = generateIdempotencyKey();
 
-    let base64Image = null;
-    if (image) {
-      base64Image = await compressImageToBase64(image, 800, 800, 0.7);
-      
-      // AI Validation
-      try {
-        const aiCheck = await api.post("/ai/validate-photo", { 
-            imageBase64: base64Image,
-            kategoriLaporan: jenisLaporan
-        });
-        if (aiCheck.data && aiCheck.data.isValid === false) {
-            alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto ini tidak relevan dengan kategori laporan "${jenisLaporan}". Silakan unggah foto kejadian yang sebenarnya sesuai pilihan Anda.`);
-            setLoading(false);
-            isSubmittingRef.current = false;
-            return;
+    const formData = new FormData();
+    formData.append("judul", jenisLaporan);
+    formData.append("isi", `Lokasi: RT ${rt} / RW ${rw}\n\nKronologi:\n${isi}`);
+
+    if (media.length > 0) {
+      // AI Validation only for the first image
+      const firstImage = media.find(file => file.type.startsWith("image/"));
+      if (firstImage) {
+        const base64Image = await compressImageToBase64(firstImage, 800, 800, 0.7);
+        try {
+          const aiCheck = await api.post("/ai/validate-photo", { 
+              imageBase64: base64Image,
+              kategoriLaporan: jenisLaporan
+          });
+          if (aiCheck.data && aiCheck.data.isValid === false) {
+              alert(`⚠️ Sistem Cerdas Sipentar mendeteksi bahwa foto ini tidak relevan dengan kategori laporan "${jenisLaporan}". Silakan unggah foto kejadian yang sebenarnya sesuai pilihan Anda.`);
+              setLoading(false);
+              isSubmittingRef.current = false;
+              return;
+          }
+        } catch (err) {
+          console.warn("AI Validation failed, proceeding anyway", err);
         }
-      } catch (err) {
-        console.warn("AI Validation failed, proceeding anyway", err);
       }
+
+      media.forEach(file => {
+          formData.append("media", file);
+      });
     }
 
-    const payload = {
-      judul: jenisLaporan,
-      isi: `Lokasi: RT ${rt} / RW ${rw}\n\nKronologi:\n${isi}`,
-      imageUrl: base64Image
-    };
-
     try {
-      await api.post("/laporan", payload, {
-        headers: { 'X-Idempotency-Key': idempotencyKey }
+      await api.post("/laporan", formData, {
+        headers: { 
+            'X-Idempotency-Key': idempotencyKey,
+            'Content-Type': 'multipart/form-data'
+        }
       });
       alert("Laporan berhasil dikirim 🔥");
       setJenisLaporan("Jalan Rusak");
       setRt("01");
       setRw("01");
       setIsi("");
-      setImage(null);
+      setMedia([]);
       // Start cooldown to prevent rapid re-submission
       startCooldown(30);
       if (onReportAdded) onReportAdded();
@@ -128,7 +138,7 @@ function Laporan({ onReportAdded }) {
         </div>
         <div>
           <h3 className="font-outfit text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Ajukan Pelaporan Baru</h3>
-          <p className="text-sm sm:text-base font-medium text-slate-500 mt-1">Sampaikan rincian kejadian beserta lokasi dan bukti foto autentik.</p>
+          <p className="text-sm sm:text-base font-medium text-slate-500 mt-1">Sampaikan rincian kejadian beserta lokasi dan bukti foto/video autentik.</p>
         </div>
       </div>
 
@@ -191,44 +201,54 @@ function Laporan({ onReportAdded }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-2 pl-1 tracking-wide uppercase">Unggah Foto (Opsional)</label>
+          <label className="block text-xs font-bold text-slate-600 mb-2 pl-1 tracking-wide uppercase">Unggah Lampiran (Opsional)</label>
           <div className="relative group/upload mt-1">
-            <div className={`absolute inset-0 border-2 border-dashed rounded-xl transition-colors duration-300 pointer-events-none ${image ? 'border-blue-500' : 'border-slate-300 group-hover/upload:border-blue-400'}`}></div>
+            <div className={`absolute inset-0 border-2 border-dashed rounded-xl transition-colors duration-300 pointer-events-none ${media.length > 0 ? 'border-blue-500' : 'border-slate-300 group-hover/upload:border-blue-400'}`}></div>
 
-            <div className={`relative flex flex-col items-center justify-center px-6 py-8 rounded-xl transition-all duration-300 overflow-hidden ${image ? 'bg-blue-50' : 'bg-slate-50 hover:bg-slate-100'}`}>
+            <div className={`relative flex flex-col items-center justify-center px-6 py-8 rounded-xl transition-all duration-300 overflow-hidden ${media.length > 0 ? 'bg-blue-50' : 'bg-slate-50 hover:bg-slate-100'}`}>
 
-              {!image ? (
+              {media.length === 0 ? (
                 <>
                   <div className="w-14 h-14 mb-3 rounded-full bg-white text-slate-400 shadow-sm border border-slate-200 flex items-center justify-center group-hover/upload:text-sipentar-blue group-hover/upload:border-blue-200 transition-all duration-300 transform">
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   </div>
                   <div className="text-center z-10 w-full max-w-sm">
                     <p className="text-sm font-bold text-slate-700 mb-1 transition-colors">
-                      <span className="text-sipentar-blue cursor-pointer group-hover/upload:underline">Pilih Dokumen Foto</span> atau seret ke sini
+                      <span className="text-sipentar-blue cursor-pointer group-hover/upload:underline">Pilih Foto/Video</span> atau seret ke sini
                     </p>
-                    <p className="text-[10px] font-bold tracking-wider uppercase text-slate-500 mt-1">Mendukung resolusi tinggi JPG, PNG, WEBP</p>
+                    <p className="text-[10px] font-bold tracking-wider uppercase text-slate-500 mt-1">Bisa lebih dari 1 file (JPG, PNG, WEBP, MP4, WEBM)</p>
                   </div>
-                  <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/jpeg,image/png,image/webp" onChange={(e) => setImage(e.target.files[0])} />
+                  <input type="file" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg" onChange={(e) => setMedia(Array.from(e.target.files))} />
                 </>
               ) : (
-                <div className="text-center w-full z-10 flex flex-col items-center">
-                  <div className="relative inline-block group/preview">
-                    <div className="w-48 h-32 sm:w-64 sm:h-40 rounded-lg overflow-hidden border border-slate-200 mx-auto mb-4 bg-slate-100 transition-colors">
-                      {previewUrl && <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transform group-hover/preview:scale-105 transition-transform duration-500" />}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); setImage(null); }}
-                      className="absolute -top-3 -right-3 bg-white text-red-500 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-red-50 hover:scale-110 transition-all z-30 border border-slate-200"
-                      aria-label="Hapus Foto"
-                      title="Hapus Foto"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                <div className="w-full z-10 flex flex-col items-center">
+                  <input type="file" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg" onChange={(e) => setMedia(Array.from(e.target.files))} />
+                  
+                  <div className="flex flex-wrap justify-center gap-4 mb-4 relative z-30">
+                    {previewUrls.map((url, i) => (
+                      <div key={i} className="relative inline-block group/preview">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 transition-colors">
+                          {media[i].type.startsWith("video/") ? (
+                            <video src={url} className="w-full h-full object-cover" muted playsInline />
+                          ) : (
+                            <img src={url} alt={`Preview ${i}`} className="w-full h-full object-cover transform group-hover/preview:scale-105 transition-transform duration-500" />
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); handleRemoveMedia(i); }}
+                          className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-50 hover:scale-110 transition-all border border-slate-200"
+                          title="Hapus"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                  
                   <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-blue-200 transition-colors">
-                    <p className="text-xs font-bold text-slate-800 truncate max-w-[200px]">{image.name}</p>
-                    <p className="text-[10px] font-bold text-sipentar-blue mt-0.5 uppercase tracking-widest">Siap Dilampirkan</p>
+                    <p className="text-xs font-bold text-slate-800 truncate max-w-[200px]">{media.length} File Terpilih</p>
+                    <p className="text-[10px] font-bold text-sipentar-blue mt-0.5 uppercase tracking-widest">Klik area ini untuk mengganti</p>
                   </div>
                 </div>
               )}

@@ -22,6 +22,25 @@ function UserDashboard() {
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  const renderMedia = (urlArray, fallbackUrl, borderColorClass, labelText) => {
+    let urls = [];
+    if (urlArray && Array.isArray(urlArray) && urlArray.length > 0) {
+      urls = urlArray;
+    } else if (fallbackUrl) {
+      urls = [fallbackUrl];
+    }
+
+    return urls.map((url, idx) => {
+      const fullUrl = url.startsWith('data:image') || url.startsWith('blob:') ? url : `${IMAGE_BASE_URL}/uploads/${url}`;
+      const isVideo = fullUrl.match(/\.(mp4|webm|ogg)$/i);
+      if (isVideo) {
+        return <video key={idx} src={fullUrl} className={`w-12 h-12 sm:w-16 sm:h-16 object-cover rounded border ${borderColorClass} shadow-sm cursor-pointer`} muted playsInline controls />;
+      } else {
+        return <img key={idx} src={fullUrl} className={`w-12 h-12 sm:w-16 sm:h-16 object-cover rounded border ${borderColorClass} cursor-zoom-in hover:opacity-85 shadow-sm`} onClick={(e) => { e.stopPropagation(); setSelectedImage(fullUrl); }} alt={labelText ? `${labelText} ${idx+1}` : `Lampiran ${idx+1}`} />;
+      }
+    });
+  };
+
   const role = localStorage.getItem("role");
   const name = localStorage.getItem("name");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -308,27 +327,10 @@ function UserDashboard() {
                                 </div>
                                 
                                 {/* Menampilkan Thumbnail Minimalis di Beranda */}
-                                {(r.image_url || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
+                                {(r.image_url || (r.media_urls && r.media_urls.length > 0) || (r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true))) && (
                                   <div className="flex gap-2 mt-1">
-                                    {r.image_url && (
-                                      <img 
-                                        src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} 
-                                        alt="Lampiran" 
-                                        className="w-12 h-12 object-cover rounded border border-slate-200 cursor-zoom-in hover:opacity-85 shadow-sm"
-                                        onClick={(e) => { e.stopPropagation(); setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`); }}
-                                      />
-                                    )}
-                                    {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
-                                      (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
-                                        <img 
-                                          key={idx}
-                                          src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} 
-                                          alt={`Bukti Admin ${idx + 1}`} 
-                                          className="w-12 h-12 object-cover rounded border border-slate-200 cursor-zoom-in hover:opacity-85 shadow-sm ring-1 ring-green-500/30"
-                                          onClick={(e) => { e.stopPropagation(); setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`); }}
-                                        />
-                                      ))
-                                    )}
+                                    {renderMedia(r.media_urls, r.image_url, 'border-slate-200', 'Lampiran')}
+                                    {renderMedia(r.admin_evidence_urls, null, 'border-green-200 ring-1 ring-green-500/30', 'Bukti Admin')}
                                   </div>
                                 )}
                               </div>
@@ -378,18 +380,15 @@ function UserDashboard() {
                         </div>
                         <p className="text-slate-600 leading-relaxed text-sm mb-4">{r.isi}</p>
                         <div className="flex flex-wrap gap-4 mt-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                          {r.image_url && (
+                          {(r.image_url || (r.media_urls && r.media_urls.length > 0)) && (
                             <div className="flex flex-col gap-2">
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 Lampiran Anda
                               </p>
-                              <img 
-                                src={r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`} 
-                                alt="Lampiran" 
-                                className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-slate-200 cursor-zoom-in hover:opacity-85 hover:ring-2 hover:ring-sipentar-blue/50 transition-all shadow-sm"
-                                onClick={() => setSelectedImage(r.image_url.startsWith('data:image') ? r.image_url : `${IMAGE_BASE_URL}/uploads/${r.image_url}`)}
-                              />
+                              <div className="flex flex-wrap gap-2">
+                                {renderMedia(r.media_urls, r.image_url, 'border-slate-200 hover:ring-2 hover:ring-sipentar-blue/50', 'Lampiran')}
+                              </div>
                             </div>
                           )}
                           {r.admin_evidence_urls && (Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls.length > 0 : true) && (
@@ -399,15 +398,7 @@ function UserDashboard() {
                                 Bukti Penanganan
                               </p>
                               <div className="flex flex-wrap gap-2">
-                                {(Array.isArray(r.admin_evidence_urls) ? r.admin_evidence_urls : [r.admin_evidence_urls]).map((url, idx) => (
-                                  <img 
-                                    key={idx}
-                                    src={url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`} 
-                                    alt={`Bukti Admin ${idx + 1}`} 
-                                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-slate-200 cursor-zoom-in hover:opacity-85 hover:ring-2 hover:ring-green-500/50 transition-all shadow-sm"
-                                    onClick={() => setSelectedImage(url.startsWith('data:image') ? url : `${IMAGE_BASE_URL}/uploads/${url}`)}
-                                  />
-                                ))}
+                                {renderMedia(r.admin_evidence_urls, null, 'border-green-200 hover:ring-2 hover:ring-green-500/50', 'Bukti Admin')}
                               </div>
                             </div>
                           )}
